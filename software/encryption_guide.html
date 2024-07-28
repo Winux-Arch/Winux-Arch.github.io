@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryption Guide</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome | Herzlich Wilkommen</h1>
+    </header>
+    <main>
+        <section>
+            <h2>THIS SITE IS CURRENTLY UNDER CONSTRUCTION | DIESE WEBSITE IST IM WARTUNGSMODUS</h2>
+
+            <h2>Basic guide to en- and decryption | Anleitung zur Ver- und Entschl&uuml;sselung:</h2>
+
+            <p>To encrypt messages using OpenSSL with RSA, you'll need the public key which can be found on this Website. Here's a basic guide:</p>
+            <p>This can also be done online but is insecure. <a href="https://www.cryptool.org/en/cto/openssl/">https://www.cryptool.org/en/cto/openssl/</a></p>
+            <ol>
+                <li>
+                    <p><strong>Generate a key pair</strong>: If you don't already have a key pair, you can generate one with OpenSSL.</p>
+                </li>
+                <li>
+                    <p><code>openssl genrsa -out private_key.pem 4096</code></p>
+                </li>
+                <li>
+                    <p><code>openssl rsa -pubout -in private_key.pem -out public_key.pem </code></p>
+                </li>
+                <li>
+                    <p><strong><code>Keep the private key safe. Send me only your public key.</code></strong></p>
+                </li>
+                <li>
+                    <p><strong>Encrypt a message</strong>: Let's say your message is in a file named <code>message.txt</code>.</p>
+                </li>
+                <li>
+                    <p><code>openssl pkeyutl -encrypt -pubin -inkey <strong>public_key_of_myself.pem</strong> -in <strong>message_you_want_to_send_me.txt</strong> -out encrypted_message.dat </code></p>
+                </li>
+                <li>
+                    <p><code>My public key can be found here: <a href="https://github.com/Winux-Arch/Winux-Arch.github.io/tree/main">Public key</a></code></p>
+                </li>
+                <li>
+                    <p><strong>Decrypt the message</strong>: You, who has the private key of your keypair, can decrypt the message.</p>
+                </li>
+                <li>
+                    <p><code>openssl pkeyutl -decrypt -inkey <strong>private_key_of_yourself_compatible_with_the_public_key_you_send_me.pem</strong> -in <strong>encrypted_message_which_i_send_you.dat</strong> -out decrypted_message.txt</code></p>
+                </li>
+            </ol>
+        </section>
+    </main>
+</body>
+</html>
+

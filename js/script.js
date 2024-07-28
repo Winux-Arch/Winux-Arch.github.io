@@ -1,91 +1,106 @@
-window.onload = function() {
-    const canvas = document.getElementById('backgroundCanvas');
-    const ctx = canvas.getContext('2d');
-    let width, height;
-    let particles = [];
+// Set up the canvas and context
+const canvas = document.getElementById('backgroundCanvas');
+const ctx = canvas.getContext('2d');
 
-    function init() {
-        resizeCanvas();
-        createParticles();
-        animate();
-        window.addEventListener('resize', resizeCanvas);
-    }
+// Create an offscreen canvas for the wave simulation
+const offscreenCanvas = document.createElement('canvas');
+const offscreenCtx = offscreenCanvas.getContext('2d');
 
-    function resizeCanvas() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-    }
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    offscreenCanvas.width = Math.floor(canvas.width / 4);
+    offscreenCanvas.height = Math.floor(canvas.height / 4);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-    function createParticles() {
-        particles = [];
-        for (let i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                vx: (Math.random() - 0.5) * 2,
-                vy: (Math.random() - 0.5) * 2,
-                size: Math.random() * 3 + 1,
-                angle: Math.random() * Math.PI * 2,
-                angularSpeed: (Math.random() - 0.5) * 0.05,
-                trail: []
-            });
+// Wave parameters
+const cols = offscreenCanvas.width;
+const rows = offscreenCanvas.height;
+const damping = 0.99;
+
+// Ball parameters
+const ballX = Math.floor(cols / 2);
+const ballY = Math.floor(rows / 2);
+const ballRadius = Math.floor(cols / 10);
+
+// Create the grids
+let waveCurrent = new Float32Array(cols * rows).fill(0);
+let wavePrevious = new Float32Array(cols * rows).fill(0);
+
+// Function to initialize the wave with a single disturbance at a random location
+function initializeWave() {
+    const randomX = Math.floor(Math.random() * cols);
+    const randomY = Math.floor(Math.random() * rows);
+    wavePrevious[randomX + randomY * cols] = 1000; // Initial disturbance
+}
+
+// Function to check if a point is inside the ball
+function isInBall(x, y) {
+    const dx = x - ballX;
+    const dy = y - ballY;
+    return dx * dx + dy * dy <= ballRadius * ballRadius;
+}
+
+// Function to update the wave based on the PDE
+function updateWave() {
+    for (let x = 1; x < cols - 1; x++) {
+        for (let y = 1; y < rows - 1; y++) {
+            if (!isInBall(x, y)) {
+                const idx = x + y * cols;
+                waveCurrent[idx] = (
+                    wavePrevious[(x - 1) + y * cols] +
+                    wavePrevious[(x + 1) + y * cols] +
+                    wavePrevious[x + (y - 1) * cols] +
+                    wavePrevious[x + (y + 1) * cols]
+                ) / 2 - waveCurrent[idx];
+                waveCurrent[idx] *= damping;
+            } else {
+                waveCurrent[x + y * cols] = 0;
+            }
         }
     }
 
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        drawParticles();
-        updateParticles();
-        requestAnimationFrame(animate);
-    }
+    // Swap buffers
+    let temp = wavePrevious;
+    wavePrevious = waveCurrent;
+    waveCurrent = temp;
+}
 
-    function drawParticles() {
-        particles.forEach(p => {
-            // Draw the particle
-            ctx.fillStyle = '#64b5f6';
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Draw the trail
-            ctx.strokeStyle = 'rgba(100, 181, 246, 0.3)';
-            ctx.lineWidth = p.size;
-            ctx.beginPath();
-            for (let i = 0; i < p.trail.length - 1; i++) {
-                ctx.moveTo(p.trail[i].x, p.trail[i].y);
-                ctx.lineTo(p.trail[i + 1].x, p.trail[i + 1].y);
+// Function to draw the wave
+function drawWave() {
+    const imageData = offscreenCtx.createImageData(cols, rows);
+    for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+            const idx = x + y * cols;
+            const brightness = Math.max(0, Math.min(255, Math.floor(waveCurrent[idx] * 255)));
+            const pixelIndex = (x + y * cols) * 4;
+            if (isInBall(x, y)) {
+                imageData.data[pixelIndex] = 0;
+                imageData.data[pixelIndex + 1] = 0;
+                imageData.data[pixelIndex + 2] = 0;
+            } else {
+                imageData.data[pixelIndex] = brightness;
+                imageData.data[pixelIndex + 1] = brightness;
+                imageData.data[pixelIndex + 2] = 255;
             }
-            ctx.stroke();
-        });
+            imageData.data[pixelIndex + 3] = 255; // Alpha channel
+        }
     }
+    offscreenCtx.putImageData(imageData, 0, 0);
+    ctx.drawImage(offscreenCanvas, 0, 0, canvas.width, canvas.height);
+}
 
-    function updateParticles() {
-        particles.forEach(p => {
-            p.angle += p.angularSpeed;
-            p.x += Math.sin(p.angle) * 2;
-            p.y += Math.cos(p.angle) * 2;
+// Animation loop
+function animate() {
+    updateWave();
+    drawWave();
+    requestAnimationFrame(animate);
+}
 
-            // Update the trail
-            p.trail.push({ x: p.x, y: p.y });
-            if (p.trail.length > 10) {
-                p.trail.shift();
-            }
-
-            // Bounce off the edges
-            if (p.x < 0 || p.x > width) p.vx *= -1;
-            if (p.y < 0 || p.y > height) p.vy *= -1;
-
-            // Ensure particles stay within the canvas bounds
-            if (p.x < 0) p.x = 0;
-            if (p.x > width) p.x = width;
-            if (p.y < 0) p.y = 0;
-            if (p.y > height) p.y = height;
-        });
-    }
-
-    init();
-};
-
+// Initialize and start the animation
+initializeWave();
+setInterval(initializeWave, 7000); // Start a new wavefront every 7 seconds
+animate();
 

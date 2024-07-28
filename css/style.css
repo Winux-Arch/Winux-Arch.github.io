@@ -5,6 +5,7 @@ body {
     padding: 0;
     background-color: #121212;
     color: #e0e0e0;
+    overflow: hidden;
 }
 
 header {
@@ -18,16 +19,21 @@ header h1 {
     margin: 0;
     font-size: 2em;
     font-weight: 700;
+    animation: fadeIn 2s ease-in-out;
 }
 
 main {
     padding: 20px;
+    z-index: 1;
+    position: relative;
+    animation: fadeIn 2s ease-in-out;
 }
 
 main h2 {
     font-size: 1.5em;
     border-bottom: 2px solid #333;
     padding-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 ul {
@@ -57,6 +63,8 @@ footer {
     bottom: 0;
     width: 100%;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    animation: fadeIn 2s ease-in-out;
 }
 
 footer p {
@@ -83,4 +91,26 @@ ul li a:hover {
     background-color: #444;
     transform: translateY(-3px);
 }
+
+/* Canvas background styling */
+#backgroundCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* Keyframe animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
 

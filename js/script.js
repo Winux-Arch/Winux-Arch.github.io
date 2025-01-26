@@ -1,122 +1,114 @@
-// Set up the canvas and context
 const canvas = document.getElementById('backgroundCanvas');
+
 const ctx = canvas.getContext('2d');
+document.body.appendChild(canvas);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Create an offscreen canvas for the wave simulation
-const offscreenCanvas = document.createElement('canvas');
-const offscreenCtx = offscreenCanvas.getContext('2d');
-
-function resizeCanvas() {
+// Helper function to resize canvas on window resize
+window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    offscreenCanvas.width = Math.floor(canvas.width / 4);
-    offscreenCanvas.height = Math.floor(canvas.height / 4);
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+});
 
-// Wave parameters
-const cols = offscreenCanvas.width;
-const rows = offscreenCanvas.height;
-const damping = 0.99;
+// Generate multiple sets of random points
+const createPointSet = (count, offsetX = 0, offsetY = 0) => {
+    return Array.from({
+        length: count
+    }, () => ({
+        x: Math.random() * canvas.width / 3 + offsetX,
+        y: Math.random() * canvas.height / 3 + offsetY,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5
+    }));
+};
 
-// Ball parameters
-const ballX = Math.floor(cols / 2);
-const ballY = Math.floor(rows / 2);
-const ballRadius = Math.floor(cols / 10);
+const pointSets = [
+    createPointSet(10, 0, 0),
+    createPointSet(10, canvas.width / 3, 0),
+    createPointSet(10, (2 * canvas.width) / 3, canvas.height / 3),
+    createPointSet(10, 0, (2 * canvas.height) / 3),
+    createPointSet(10, (2 * canvas.width) / 3, (2 * canvas.height) / 3)
+];
 
-// Create the grids
-let waveCurrent = new Float32Array(cols * rows).fill(0);
-let wavePrevious = new Float32Array(cols * rows).fill(0);
+// Compute the convex hull using Graham's scan algorithm
+function computeConvexHull(points) {
+    // Sort points by x-coordinate (and y-coordinate as a tiebreaker)
+    points.sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
 
-// Function to initialize the wave with a single disturbance at a random position
-function initializeWave() {
-    const randomX = Math.floor(Math.random() * cols);
-    const randomY = Math.floor(Math.random() * rows);
-    wavePrevious[randomX + randomY * cols] = 1000; // Initial disturbance
-}
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
 
-// Function to reset the wave grids
-function resetWaves() {
-    waveCurrent.fill(0);
-    wavePrevious.fill(0);
-}
-
-// Function to check if a point is inside the ball
-function isInBall(x, y) {
-    const dx = x - ballX;
-    const dy = y - ballY;
-    return dx * dx + dy * dy <= ballRadius * ballRadius;
-}
-
-// Function to update the wave based on the PDE
-function updateWave() {
-    for (let x = 1; x < cols - 1; x++) {
-        for (let y = 1; y < rows - 1; y++) {
-            if (!isInBall(x, y)) {
-                const idx = x + y * cols;
-                waveCurrent[idx] = (
-                    wavePrevious[(x - 1) + y * cols] +
-                    wavePrevious[(x + 1) + y * cols] +
-                    wavePrevious[x + (y - 1) * cols] +
-                    wavePrevious[x + (y + 1) * cols]
-                ) / 2 - waveCurrent[idx];
-                waveCurrent[idx] *= damping;
-            } else {
-                waveCurrent[x + y * cols] = 0;
-            }
+    const lower = [];
+    for (const p of points) {
+        while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+            lower.pop();
         }
+        lower.push(p);
     }
 
-    // Swap buffers
-    let temp = wavePrevious;
-    wavePrevious = waveCurrent;
-    waveCurrent = temp;
-}
-
-// Function to draw the wave
-function drawWave() {
-    const imageData = offscreenCtx.createImageData(cols, rows);
-    for (let x = 0; x < cols; x++) {
-        for (let y = 0; y < rows; y++) {
-            const idx = x + y * cols;
-            const brightness = Math.max(0, Math.min(255, Math.floor(waveCurrent[idx] * 255)));
-            const pixelIndex = (x + y * cols) * 4;
-            if (isInBall(x, y)) {
-                imageData.data[pixelIndex] = 0;
-                imageData.data[pixelIndex + 1] = 0;
-                imageData.data[pixelIndex + 2] = 0;
-            } else {
-                imageData.data[pixelIndex] = brightness;
-                imageData.data[pixelIndex + 1] = brightness;
-                imageData.data[pixelIndex + 2] = 255;
-            }
-            imageData.data[pixelIndex + 3] = 255; // Alpha channel
+    const upper = [];
+    for (const p of points.slice().reverse()) {
+        while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+            upper.pop();
         }
+        upper.push(p);
     }
-    offscreenCtx.putImageData(imageData, 0, 0);
-    ctx.drawImage(offscreenCanvas, 0, 0, canvas.width, canvas.height);
+
+    // Remove the last point of each half because it's repeated
+    upper.pop();
+    lower.pop();
+
+    return lower.concat(upper);
 }
 
-// Animation loop
-let lastDrawTime = 0;
 
-function animate(time) {
-    updateWave();
-    if (time - lastDrawTime >= 50) {
-        drawWave();
-        lastDrawTime = time;
-    }
+
+// Animate the points and convex hulls
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update points with smooth motion
+    pointSets.forEach(points => {
+        points.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Reverse velocity if points hit the canvas boundary
+            if (p.x <= 0 || p.x >= canvas.width) p.vx *= -1;
+            if (p.y <= 0 || p.y >= canvas.height) p.vy *= -1;
+        });
+    });
+
+    // Compute convex hulls for each set
+    const hulls = pointSets.map(points => computeConvexHull(points));
+
+    // Draw points and hulls
+    const colors = ['rgba(0, 150, 255, 0.8)', 'rgba(0, 255, 150, 0.8)', 'rgba(255, 100, 100, 0.8)', 'rgba(255, 255, 0, 0.8)', 'rgba(150, 100, 255, 0.8)'];
+
+    pointSets.forEach((points, index) => {
+        // Draw points
+        ctx.fillStyle = colors[index % colors.length];
+        points.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw convex hull
+        const hull = hulls[index];
+        ctx.strokeStyle = colors[index % colors.length];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < hull.length; i++) {
+            const p = hull[i];
+            if (i === 0) ctx.moveTo(p.x, p.y);
+            else ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    });
+
     requestAnimationFrame(animate);
 }
 
-// Initialize and start the animation
-initializeWave();
 animate();
-
-// Start a new wavefront every 7 seconds and reset the array
-setInterval(() => {
-    resetWaves();
-    initializeWave();
-}, 7000);
-

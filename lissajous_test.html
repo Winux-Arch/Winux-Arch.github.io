@@ -27,7 +27,7 @@
 
         const colors = ['#FF5733', '#33FF57', '#5733FF', '#FFFF33', '#FF33A1'];
         const trails = [];
-        const numTrails = 50;
+        const numTrails = 10;
 
         class Lissajous {
             constructor(a, b, delta, color) {
@@ -36,16 +36,26 @@
                 this.delta = delta;
                 this.t = 0;
                 this.color = color;
+                this.positions = [];
             }
 
             draw() {
                 const x = canvas.width / 2 + canvas.width / 3 * Math.sin(this.a * this.t + this.delta);
                 const y = canvas.height / 2 + canvas.height / 3 * Math.cos(this.b * this.t);
 
-                ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
+                this.positions.push({ x, y });
+                if (this.positions.length > 50) {
+                    this.positions.shift();
+                }
+
+                for (let i = 0; i < this.positions.length; i++) {
+                    const pos = this.positions[i];
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+                    const alpha = i / this.positions.length;
+                    ctx.fillStyle = this.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+                    ctx.fill();
+                }
             }
 
             update() {
@@ -68,7 +78,8 @@
         }
 
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(15, 15, 15, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             trails.forEach(trail => {
                 trail.update();

@@ -8,6 +8,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh; /* Ensure the body takes up the full height */
+    line-height: 1.6; /* Improves readability */
 }
 
 /* Main Content */
@@ -31,7 +32,7 @@ header h1 {
     display: inline-block;
     padding: 20px;
     font-size: 2em;
-    font-weight: 700;
+    font-weight: 700; /* Strong emphasis */
     border-radius: 8px;
     animation: fadeIn 2s ease-in-out;
 }
@@ -39,6 +40,7 @@ header h1 {
 /* Main Content Section Titles */
 main h2 {
     font-size: 1.5em;
+    font-weight: 600; /* Lighter weight for section headers */
     border-bottom: 2px solid #333;
     padding-bottom: 10px;
     margin-bottom: 20px;
@@ -59,12 +61,13 @@ ul li a {
     padding: 10px;
     background-color: rgba(51, 51, 51, 0.8); /* Corrected rgba syntax */
     border-radius: 4px;
-    transition: background-color 0.3s, transform 0.3s;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 ul li a:hover {
     background-color: rgba(68, 68, 68, 0.8); /* Corrected rgba syntax */
-    transform: translateY(-3px);
+    transform: translateY(-3px) scale(1.04); /* Added scaling effect */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Added shadow */
 }
 
 /* Link Styling */
@@ -119,4 +122,65 @@ footer p {
     to {
         opacity: 1;
     }
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    main {
+        padding: 15px;
+    }
+
+    footer {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    main h2 {
+        font-size: 1.3em;
+    }
+
+    .content {
+        padding: 15px;
+    }
+
+    ul li a {
+        padding: 8px;
+    }
+}
+
+/* Accessibility and Focus Styles */
+a:focus, ul li a:focus {
+    outline: 3px solid #bb86fc;
+}
+
+/* Smooth Scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* CSS Variables for Easy Customization */
+:root {
+    --primary-color: #64b5f6;
+    --secondary-color: #bb86fc;
+    --background-color: #121212;
+    --text-color: #fff;
+    --link-hover-color: #bb86fc;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+a:hover {
+    color: var(--link-hover-color);
 }

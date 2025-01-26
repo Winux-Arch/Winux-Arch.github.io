@@ -1,100 +1,97 @@
-/* Style for the body and basic elements */
+/* General Body and Basic Elements */
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #121212;
-    color: #e0e0e0;
-    overflow: hidden;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+   /* Ensure the body takes up the full height */
 }
-
-header {
-    background-color: #1f1f1f;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 1; 
-}
-
-header h1 {
-    margin: 0;
-    font-size: 2em;
-    font-weight: 700;
-    animation: fadeIn 2s ease-in-out;
-}
-
+/* Main Content */
 main {
     padding: 20px;
-    z-index: 1;
     position: relative;
+    z-index: 1;
+    margin-bottom: 60px;
+   /* Prevent content from overlapping footer */
+    animation: fadeIn 2s ease-in-out;
+    flex-grow: 1;
+   /* Allow main content to grow and take up available space */
+}
+/* Header Styles */
+header {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+header h1 {
+    display: inline-block;
+    padding: 20px;
+    font-size: 2em;
+    font-weight: 700;
+    border-radius: 8px;
     animation: fadeIn 2s ease-in-out;
 }
-
+/* Main Content Styles */
 main h2 {
     font-size: 1.5em;
     border-bottom: 2px solid #333;
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
-
 ul {
     list-style-type: none;
     padding: 0;
 }
-
 ul li {
     margin: 10px 0;
 }
-
+ul li a {
+    display: block;
+    padding: 10px;
+    background-color: rgb(51, 51, 51,0.8);
+    border-radius: 4px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+ul li a:hover {
+    background-color: rgb(68, 68, 68,0.8);
+    transform: translateY(-3px);
+}
 a {
     color: #64b5f6;
     text-decoration: none;
     transition: color 0.3s ease;
 }
-
 a:hover {
     color: #bb86fc;
 }
-
+/* Footer Styles */
+/* Footer Styles */
 footer {
-    background-color: #1f1f1f;
+    padding: 20px;
     text-align: center;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1;
     animation: fadeIn 2s ease-in-out;
+    align-self: center;
+   /* Center the footer horizontally */
+    margin-top: auto;
+   /* Push the footer to the bottom of the screen */
 }
-
 footer p {
     margin: 0;
+    font-size: 1em;
 }
-
+/* Content Box Styling */
 .content {
-    background-color: #2c2c2c;
+    background-color: rgb(44, 44, 44, 0.25);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
-
-/* Adding some animations and hover effects */
-ul li a {
-    display: block;
-    padding: 10px;
-    background-color: #333;
-    border-radius: 4px;
-    transition: background-color 0.3s, transform 0.3s;
-}
-
-ul li a:hover {
-    background-color: #444;
-    transform: translateY(-3px);
-}
-
-/* Canvas background styling */
+/* Background Canvas */
 #backgroundCanvas {
     position: fixed;
     top: 0;
@@ -103,16 +100,12 @@ ul li a:hover {
     height: 100%;
     z-index: 0;
 }
-
-/* Keyframe animations */
+/* Keyframe Animation for FadeIn */
 @keyframes fadeIn {
     from {
         opacity: 0;
-    }
+   }
     to {
         opacity: 1;
-    }
+   }
 }
-
-
-

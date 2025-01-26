@@ -104,6 +104,13 @@ footer p {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
+.blog-entry {
+    background-color: rgba(44, 44, 44, 0.925); /* Corrected rgba syntax */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
 /* Background Canvas */
 #backgroundCanvas {
     position: fixed;
